@@ -3,616 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅行规划表 - 上海及周边</title>
-    <!-- Tailwind CSS CDN -->
+    <title>旅行规划表</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!-- Google Fonts - Montserrat for headings, Open Sans for body -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Font Awesome CDN for Icons (v5 or v6) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* A4 paper size and print-specific styles */
+        /* 针对打印的通用样式 */
         @page {
-            size: A4;
-            margin: 10mm; /* Printing margins */
+            size: A4; /* 设置纸张尺寸为A4 */
+            margin: 10mm; /* 设置打印边距 */
         }
-
         body {
-            font-family: 'Open Sans', sans-serif;
-            color: #333;
-            background-color: #f0f2f5; /* Light background for screen */
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
+            font-family: 'Noto Sans SC', sans-serif;
+            -webkit-print-color-adjust: exact; /* 确保背景色和图片在打印时保持 */
+            color-adjust: exact;
+            background-color: #f7f7f7; /* 轻微的背景色，屏幕显示用 */
+            line-height: 1.6; /* 增加行高，提升可读性 */
+        }
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm; /* 允许内容自然流动到多页 */
+            margin: 0 auto; /* 居中显示 */
+            background: #ffffff; /* 白色背景 */
+            box-shadow: 0 0 8px rgba(0,0,0,0.1); /* 屏幕显示时的阴影效果 */
+            page-break-after: always; /* 确保每页内容在打印时分页 */
+            padding: 15mm; /* 屏幕显示时的内边距，比打印边距略大 */
+            box-sizing: border-box; /* 确保padding包含在width/height内 */
         }
 
-        .page-container {
-            width: 210mm; /* A4 width */
-            min-height: 297mm; /* A4 height */
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20mm; /* Inner padding for content */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
-            position: relative; /* For cutter guides */
-            overflow: hidden; /* Ensure cutter guides don't affect layout much */
-        }
-
-        /* Print specific styles */
+        /* 打印媒体查询 */
         @media print {
             body {
-                background-color: #fff;
-            }
-            .page-container {
-                box-shadow: none;
+                background-color: #fff; /* 打印时背景设为白色 */
                 margin: 0;
-                padding: 10mm; /* Adjust for print margins */
-                width: auto; /* Let browser handle width */
-                min-height: auto; /* Let browser handle height */
-                page-break-after: always; /* Ensure proper page breaks for multi-page content */
+            }
+            .a4-page {
+                box-shadow: none; /* 打印时不显示阴影 */
+                margin: 0;
+                padding: 0; /* 打印时由@page margin控制边距 */
+                page-break-after: always; /* 确保分页 */
             }
             .no-print {
-                display: none !important;
+                display: none !important; /* 隐藏非打印元素 */
             }
-            .cutter-guide {
-                display: block; /* Show cutter guides only on print */
+            /* 优化图表在打印时的显示 */
+            .chart-container {
+                height: 150px !important; /* 打印时固定图表高度 */
+                width: 100% !important;
             }
-            /* Ensure smooth page breaks for cards */
-            .main-card, .mini-card {
-                page-break-inside: avoid;
+            /* 确保所有元素在打印时保持高对比度 */
+            h1, h2, h3, h4, p, li, table {
+                color: #000 !important; /* 强制黑色文本 */
             }
-            /* Table header repetition on new page */
-            thead {
-                display: table-header-group;
+            .bg-blue-50, .bg-green-50, .bg-yellow-50, .bg-red-50 {
+                background-color: #f0f0f0 !important; /* 打印时浅色背景 */
             }
-            tr {
-                page-break-inside: avoid;
+            .border-blue-500, .border-green-500, .border-yellow-500, .border-red-500 {
+                border-color: #ccc !important; /* 打印时边框颜色变浅 */
             }
-            /* Chart rendering for print */
-            canvas {
-                -webkit-print-color-adjust: exact; /* Preserve colors for charts */
-                print-color-adjust: exact;
+            .text-blue-600, .text-green-600, .text-yellow-600, .text-red-600 {
+                color: #333 !important; /* 打印时图标颜色变深 */
+            }
+            .show-cut-lines .cut-line-horizontal,
+            .show-cut-lines .cut-line-vertical {
+                display: block; /* 打印时显示剪裁线 */
             }
         }
 
-        /* Cutter guides (optional, visible only on print) */
-        .cutter-guide {
-            position: absolute;
-            display: none;
-            width: 10mm;
-            height: 0.2mm;
-            background-color: #000;
-        }
-        .cutter-guide.top-left { top: 0; left: 0; transform: rotate(-45deg); transform-origin: top left; }
-        .cutter-guide.top-right { top: 0; right: 0; transform: rotate(45deg); transform-origin: top right; }
-        .cutter-guide.bottom-left { bottom: 0; left: 0; transform: rotate(45deg); transform-origin: bottom left; }
-        .cutter-guide.bottom-right { bottom: 0; right: 0; transform: rotate(-45deg); transform-origin: bottom right; }
-
-
-        /* Custom styles for layout and appearance */
-        h1, h2, h3, h4 {
-            font-family: 'Montserrat', sans-serif;
-            color: #2c3e50;
-        }
-
-        .header-section {
-            background-color: #eaf2f8;
-            padding: 24px;
-            border-bottom: 4px solid #3498db;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .header-section h1 {
-            color: #3498db;
-            font-size: 2.5rem;
-            margin-bottom: 8px;
-        }
-
-        .header-section p {
-            font-size: 1.1rem;
-            color: #555;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-
-        .main-card {
-            background-color: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+        /* 动画效果 CSS (淡入/向上滑动) */
+        .fade-in-up {
             opacity: 0;
             transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-
-        .main-card.fade-in {
+        .fade-in-up.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
 
-        .main-card h2 {
-            font-size: 1.8rem;
-            margin-bottom: 16px;
-            color: #34495e;
-            display: flex;
-            align-items: center;
+        /* 虚线辅助剪裁线 */
+        .cut-line {
+            position: absolute;
+            border-color: #ccc;
+            border-style: dashed;
+            opacity: 0.5;
+            display: none; /* 默认不显示，仅在打印时显示 */
         }
-
-        .main-card h2 i {
-            margin-right: 12px;
-            color: #3498db;
+        .cut-line-top, .cut-line-bottom {
+            left: 5mm;
+            right: 5mm;
+            height: 0;
+            border-top-width: 1px;
         }
-
-        .mini-card {
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: flex-start;
-            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
-            opacity: 0;
-            transform: translateY(10px);
+        .cut-line-top { top: 5mm; }
+        .cut-line-bottom { bottom: 5mm; }
+        .cut-line-left, .cut-line-right {
+            top: 5mm;
+            bottom: 5mm;
+            width: 0;
+            border-left-width: 1px;
         }
+        .cut-line-left { left: 5mm; }
+        .cut-line-right { right: 5mm; }
 
-        .mini-card.fade-in {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .mini-card i {
-            margin-right: 10px;
-            color: #2ecc71; /* Green for activities */
-            font-size: 1.2rem;
-            flex-shrink: 0;
-            line-height: 1.5; /* Align icon better with text */
-        }
-
-        .mini-card.food i { color: #e67e22; } /* Orange for food */
-        .mini-card.transport i { color: #9b59b6; } /* Purple for transport */
-        .mini-card.accommodation i { color: #f1c40f; } /* Yellow for accommodation */
-        .mini-card.info i { color: #3498db; } /* Blue for info */
-        .mini-card.alert i { color: #e74c3c; } /* Red for alerts */
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-
-        table th, table td {
-            border: 1px solid #ddd;
+        /* 表格样式优化 */
+        .itinerary-table th, .itinerary-table td {
             padding: 10px;
+            border-bottom: 1px solid #e2e8f0; /* 浅灰色底部边框 */
             text-align: left;
-            vertical-align: top;
         }
-
-        table th {
-            background-color: #f2f2f2;
+        .itinerary-table th {
+            background-color: #f8fafc; /* 表头背景色 */
             font-weight: 600;
-            color: #444;
+            color: #333;
         }
-
-        .text-highlight {
-            color: #e67e22;
-            font-weight: 600;
+        .itinerary-table tr:last-child td {
+            border-bottom: none; /* 最后一行无底部边框 */
         }
-
-        .print-button-container {
-            text-align: center;
-            margin-top: 30px;
-            padding-bottom: 30px;
-        }
-
-        .print-button {
-            background-color: #3498db;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: inline-flex;
-            align-items: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .print-button:hover {
-            background-color: #2980b9;
-        }
-
-        .print-button i {
-            margin-right: 8px;
-        }
-
-        .chart-container {
-            width: 100%;
-            max-width: 400px; /* Limit chart size for print-friendliness */
-            margin: 20px auto;
+        .itinerary-table tbody tr:hover {
+            background-color: #f0f8ff; /* 鼠标悬停效果 */
         }
     </style>
 </head>
-<body>
-    <div class="no-print print-button-container">
-        <button class="print-button" onclick="window.print()">
-            <i class="fas fa-print"></i> 打印旅行规划表
+<body class="bg-gray-100 print:bg-white">
+
+    <div class="no-print fixed top-4 right-4 z-50">
+        <button id="printBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg flex items-center transition duration-300 ease-in-out transform hover:scale-105">
+            <i class="fas fa-print mr-2"></i> 打印规划表
         </button>
     </div>
 
-    <!-- Cutter Guides (Visible only on print) -->
-    <div class="cutter-guide top-left"></div>
-    <div class="cutter-guide top-right"></div>
-    <div class="cutter-guide bottom-left"></div>
-    <div class="cutter-guide bottom-right"></div>
+    <div class="a4-page mx-auto mt-4 mb-4 relative show-cut-lines">
+        <div class="cut-line cut-line-top"></div>
+        <div class="cut-line cut-line-bottom"></div>
+        <div class="cut-line cut-line-left"></div>
+        <div class="cut-line cut-line-right"></div>
 
-    <div class="page-container">
-        <!-- 行程标题区 -->
-        <div class="header-section">
-            <h1 class="text-blue-600 mb-2">
-                <i class="fas fa-map-marked-alt mr-3"></i>上海及周边深度探索
-            </h1>
-            <p class="text-lg text-gray-700">
-                <i class="far fa-calendar-alt mr-2"></i>日期：2025年6月6日 - 6月8日
-                <span class="mx-4">|</span>
-                <i class="fas fa-sun mr-2"></i>总天数：3天
-            </p>
-            <p class="text-md text-gray-600 mt-2">
-                <i class="fas fa-user-friends mr-2"></i>旅行者：探险小分队
-                <span class="mx-4">|</span>
-                <i class="fas fa-cloud-sun mr-2"></i>天气（6月上旬）：多云到晴，22°C - 30°C
-            </p>
-        </div>
+        <section class="mb-8 p-4 rounded-lg fade-in-up" data-delay="0s">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-plane-departure text-5xl text-blue-600 mr-4"></i>
+                <h1 class="text-4xl font-bold text-gray-800">杭州 & 桐庐 & 乌镇之旅</h1>
+            </div>
+            <p class="text-lg text-gray-600 mb-1"><i class="far fa-calendar-alt mr-2"></i>2025年6月6日 - 6月8日 · 共3天</p>
+            <p class="text-lg text-gray-600 mb-1"><i class="fas fa-user-friends mr-2"></i>旅行者：您的姓名/团队</p>
+            <p class="text-lg text-gray-600"><i class="fas fa-cloud-sun text-yellow-500 mr-2"></i>预计天气：多云转晴，20°C-28°C</p>
+            <div class="absolute right-4 top-4 opacity-10 print:opacity-20">
+                <i class="fas fa-mountain text-6xl text-gray-400"></i>
+            </div>
+        </section>
 
-        <div class="main-grid">
-            <!-- 行程概览区 -->
-            <div class="main-card">
-                <h2><i class="fas fa-list-alt"></i>行程概览</h2>
-                <div class="mini-card info">
-                    <i class="fas fa-calendar-day"></i>
-                    <div>
-                        <p class="font-semibold">D1 (6月6日): <span class="text-blue-500">上海 → 杭州中国美术学院美术馆 → 桐庐</span></p>
-                        <p class="text-sm text-gray-600">艺术熏陶，入住富春江骏悦酒店，品尝桐庐美食。</p>
-                    </div>
-                </div>
-                <div class="mini-card info">
-                    <i class="fas fa-calendar-day"></i>
-                    <div>
-                        <p class="font-semibold">D2 (6月7日): <span class="text-blue-500">桐庐雅鲁激流探险漂流</span></p>
-                        <p class="text-sm text-gray-600">刺激漂流体验，继续品味桐庐地道风味。</p>
-                    </div>
-                </div>
-                <div class="mini-card info">
-                    <i class="fas fa-calendar-day"></i>
-                    <div>
-                        <p class="font-semibold">D3 (6月8日): <span class="text-blue-500">桐庐 → 乌镇 → 返回上海</span></p>
-                        <p class="text-sm text-gray-600">水乡古镇韵味，午餐后返沪。</p>
-                    </div>
-                </div>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 fade-in-up" data-delay="0.2s">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg shadow-sm">
+                <h3 class="text-xl font-semibold text-blue-800 mb-2 flex items-center"><i class="fas fa-calendar-day mr-2"></i>6月6日：杭州 & 桐庐</h3>
+                <ul class="list-none p-0 text-gray-700">
+                    <li class="mb-1"><i class="fas fa-paint-brush text-blue-500 mr-2"></i>上午：黑神话悟空展览</li>
+                    <li class="mb-1"><i class="fas fa-mountain text-blue-500 mr-2"></i>下午：瑶琳仙境</li>
+                    <li class="mb-1"><i class="fas fa-utensils text-blue-500 mr-2"></i>晚餐：桐庐本地美食</li>
+                </ul>
+            </div>
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg shadow-sm">
+                <h3 class="text-xl font-semibold text-green-800 mb-2 flex items-center"><i class="fas fa-calendar-day mr-2"></i>6月7日：桐庐</h3>
+                <ul class="list-none p-0 text-gray-700">
+                    <li class="mb-1"><i class="fas fa-water text-green-500 mr-2"></i>上午：雅鲁激流探险漂流</li>
+                    <li class="mb-1"><i class="fas fa-tree text-green-500 mr-2"></i>下午：大奇山森林公园</li>
+                    <li class="mb-1"><i class="fas fa-utensils text-green-500 mr-2"></i>晚餐：桐庐美食</li>
+                </ul>
+            </div>
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg shadow-sm">
+                <h3 class="text-xl font-semibold text-yellow-800 mb-2 flex items-center"><i class="fas fa-calendar-day mr-2"></i>6月8日：桐庐 & 乌镇</h3>
+                <ul class="list-none p-0 text-gray-700">
+                    <li class="mb-1"><i class="fas fa-walking text-yellow-500 mr-2"></i>上午：桐庐休闲活动</li>
+                    <li class="mb-1"><i class="fas fa-archway text-yellow-500 mr-2"></i>下午：乌镇西栅/东栅</li>
+                    <li class="mb-1"><i class="fas fa-utensils text-yellow-500 mr-2"></i>晚餐：乌镇特色美食</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="mb-8 fade-in-up" data-delay="0.4s">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-clipboard-list mr-3 text-blue-600"></i>详细行程时间表</h2>
+
+            <h3 class="text-xl font-semibold text-gray-700 mb-3 mt-6 flex items-center"><i class="far fa-calendar-check mr-2 text-blue-500"></i>6月6日（周四）</h3>
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white itinerary-table">
+                    <thead>
+                        <tr>
+                            <th class="w-1/6">时间</th>
+                            <th class="w-1/4">活动</th>
+                            <th class="w-1/4">地点</th>
+                            <th class="w-1/4">详情/备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>07:00</td>
+                            <td><i class="fas fa-car mr-2 text-green-500"></i>上海出发</td>
+                            <td></td>
+                            <td>自驾前往杭州，约2.5小时</td>
+                        </tr>
+                        <tr>
+                            <td>09:30-11:30</td>
+                            <td><i class="fas fa-paint-brush mr-2 text-blue-500"></i>黑神话悟空展览</td>
+                            <td>中国美术学院美术馆</td>
+                            <td>购票：60元/人，建议提前预约，领取原画集</td>
+                        </tr>
+                        <tr>
+                            <td>11:30-12:30</td>
+                            <td><i class="fas fa-car mr-2 text-green-500"></i>前往桐庐酒店</td>
+                            <td>富春江骏悦酒店</td>
+                            <td>办理入住，放行李</td>
+                        </tr>
+                        <tr>
+                            <td>13:30-15:00</td>
+                            <td><i class="fas fa-mountain mr-2 text-blue-500"></i>瑶琳仙境</td>
+                            <td>桐庐县瑶琳镇</td>
+                            <td>门票：约116元，溶洞内温度低</td>
+                        </tr>
+                        <tr>
+                            <td>18:00-20:00</td>
+                            <td><i class="fas fa-utensils mr-2 text-red-500"></i>晚餐</td>
+                            <td>桐庐本地餐厅</td>
+                            <td>推荐：富春江鱼头、笋干烧肉</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <!-- 实用信息区 - 预算概览 (带图表) -->
-            <div class="main-card">
-                <h2><i class="fas fa-chart-pie"></i>费用预算概览</h2>
-                <div class="chart-container">
+            <h3 class="text-xl font-semibold text-gray-700 mb-3 mt-6 flex items-center"><i class="far fa-calendar-check mr-2 text-green-500"></i>6月7日（周五）</h3>
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white itinerary-table">
+                    <thead>
+                        <tr>
+                            <th class="w-1/6">时间</th>
+                            <th class="w-1/4">活动</th>
+                            <th class="w-1/4">地点</th>
+                            <th class="w-1/4">详情/备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:00-12:00</td>
+                            <td><i class="fas fa-water mr-2 text-blue-500"></i>雅鲁激流探险漂流</td>
+                            <td>桐庐县合村村</td>
+                            <td>门票：约198元，注意安全，水流湍急</td>
+                        </tr>
+                        <tr>
+                            <td>12:30-13:30</td>
+                            <td><i class="fas fa-utensils mr-2 text-red-500"></i>午餐</td>
+                            <td>漂流附近/桐庐县城</td>
+                            <td>简餐</td>
+                        </tr>
+                        <tr>
+                            <td>14:30-17:00</td>
+                            <td><i class="fas fa-tree mr-2 text-blue-500"></i>大奇山森林公园</td>
+                            <td>桐庐县</td>
+                            <td>门票：46元，徒步上下山，打卡金牛潭</td>
+                        </tr>
+                        <tr>
+                            <td>18:30-20:30</td>
+                            <td><i class="fas fa-utensils mr-2 text-red-500"></i>晚餐</td>
+                            <td>桐庐本地餐厅</td>
+                            <td>品尝更多本地特色菜</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-700 mb-3 mt-6 flex items-center"><i class="far fa-calendar-check mr-2 text-yellow-500"></i>6月8日（周六）</h3>
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white itinerary-table">
+                    <thead>
+                        <tr>
+                            <th class="w-1/6">时间</th>
+                            <th class="w-1/4">活动</th>
+                            <th class="w-1/4">地点</th>
+                            <th class="w-1/4">详情/备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:00-11:00</td>
+                            <td><i class="fas fa-coffee mr-2 text-gray-500"></i>桐庐休闲/自由活动</td>
+                            <td>桐庐县城/富春江边</td>
+                            <td>可在县城闲逛或富春江边散步</td>
+                        </tr>
+                        <tr>
+                            <td>11:30-12:30</td>
+                            <td><i class="fas fa-utensils mr-2 text-red-500"></i>午餐</td>
+                            <td>桐庐本地餐厅</td>
+                            <td>退房后用餐</td>
+                        </tr>
+                        <tr>
+                            <td>13:00-15:30</td>
+                            <td><i class="fas fa-car mr-2 text-green-500"></i>前往乌镇</td>
+                            <td></td>
+                            <td>约2.5小时车程</td>
+                        </tr>
+                        <tr>
+                            <td>15:30-20:00</td>
+                            <td><i class="fas fa-archway mr-2 text-blue-500"></i>乌镇西栅/东栅游览</td>
+                            <td>乌镇景区</td>
+                            <td>门票：西栅150元，东栅110元，联票200元</td>
+                        </tr>
+                        <tr>
+                            <td>20:00-21:30</td>
+                            <td><i class="fas fa-utensils mr-2 text-red-500"></i>晚餐</td>
+                            <td>乌镇特色餐厅</td>
+                            <td>推荐：书生羊肉面、酱鸭</td>
+                        </tr>
+                        <tr>
+                            <td>21:30</td>
+                            <td><i class="fas fa-home mr-2 text-purple-500"></i>返程/住宿</td>
+                            <td></td>
+                            <td>根据计划选择返程或在乌镇住宿</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mb-8 fade-in-up" data-delay="0.6s">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-route mr-3 text-blue-600"></i>交通信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-indigo-800 mb-2 flex items-center"><i class="fas fa-car-alt mr-2"></i>主要交通</h3>
+                    <ul class="list-none p-0 text-gray-700">
+                        <li class="mb-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i>上海 → 杭州：自驾（约207km，2.5小时）</li>
+                        <li class="mb-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i>杭州美术馆 → 桐庐酒店：自驾（约72km，1小时）</li>
+                        <li class="mb-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i>桐庐 → 乌镇：自驾（约164km，2.5小时）</li>
+                        <li class="mb-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i>景点间交通：主要依靠自驾，部分可结合当地公共交通。</li>
+                    </ul>
+                </div>
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-indigo-800 mb-2 flex items-center"><i class="fas fa-info-circle mr-2"></i>交通提示</h3>
+                    <ul class="list-none p-0 text-gray-700">
+                        <li class="mb-1"><i class="fas fa-parking text-indigo-500 mr-2"></i>停车：景点停车位有限，建议提前规划或选择附近社会停车场。</li>
+                        <li class="mb-1"><i class="fas fa-gas-pump text-indigo-500 mr-2"></i>加油：长途驾驶注意油量。</li>
+                        <li class="mb-1"><i class="fas fa-road text-indigo-500 mr-2"></i>路况：节假日期间高速可能拥堵，建议避开高峰时段。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 fade-in-up" data-delay="0.8s">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-hotel mr-3 text-blue-600"></i>住宿与餐饮</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-purple-800 mb-2 flex items-center"><i class="fas fa-bed mr-2"></i>住宿信息</h3>
+                    <p class="text-gray-700 mb-1"><strong>酒店名称：</strong>桐庐富春江骏悦酒店</p>
+                    <p class="text-gray-700 mb-1"><strong>地址：</strong>浙江省杭州市桐庐县富春江镇</p>
+                    <p class="text-gray-700 mb-1"><strong>入住：</strong>6月6日</p>
+                    <p class="text-gray-700"><strong>退房：</strong>6月8日</p>
+                </div>
+                <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-orange-800 mb-2 flex items-center"><i class="fas fa-utensils mr-2"></i>餐饮推荐</h3>
+                    <ul class="list-none p-0 text-gray-700">
+                        <li class="mb-1"><i class="fas fa-star text-orange-500 mr-2"></i><strong>桐庐：</strong>富春江鱼头、笋干烧肉、酱鸭、河虾、梅干菜烧饼</li>
+                        <li class="mb-1"><i class="fas fa-star text-orange-500 mr-2"></i><strong>乌镇：</strong>书生羊肉面、锦记糕点铺、酱鸭、野菜馄饨、萝卜丝饼、乌镇鸡煲</li>
+                        <li class="mb-1"><i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>附近便利设施：可咨询酒店前台或使用地图APP查找超市、药店等。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 fade-in-up" data-delay="1.0s">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-money-bill-wave mr-3 text-blue-600"></i>费用预算概览</h2>
+            <div class="bg-gray-50 border-l-4 border-gray-300 p-4 rounded-lg shadow-sm">
+                <div class="chart-container" style="position: relative; height:200px; width:100%;">
                     <canvas id="budgetChart"></canvas>
                 </div>
-                <ul class="list-disc list-inside text-gray-700 mt-4">
-                    <li><span class="font-semibold">住宿:</span> 约 800元/晚 x 2晚</li>
-                    <li><span class="font-semibold">交通:</span> 油费 + 高速费 约 500元</li>
-                    <li><span class="font-semibold">门票:</span> 美术馆、漂流、乌镇 约 400元/人</li>
-                    <li><span class="font-semibold">餐饮:</span> 约 150元/人/餐 x 8餐</li>
-                    <li><span class="font-semibold">总计预估:</span> 约 <span class="text-highlight">1800-2500元/人</span> (不含购物)</li>
-                </ul>
+                <p class="text-center text-gray-700 mt-4">此图表展示了旅行各项开支的预估比例。</p>
             </div>
-        </div>
+        </section>
 
-        <div class="main-grid mt-6">
-            <!-- 详细时间表区 -->
-            <div class="main-card col-span-full">
-                <h2><i class="fas fa-clock"></i>详细行程时间表</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>日期</th>
-                                <th>时间</th>
-                                <th>活动</th>
-                                <th>地点</th>
-                                <th>详情 & 备注</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Day 1 -->
-                            <tr>
-                                <td rowspan="4">D1<br>6月6日 (周五)</td>
-                                <td>上午</td>
-                                <td><span class="font-semibold">上海出发 → 杭州</span></td>
-                                <td>自驾</td>
-                                <td>预计车程 <span class="text-highlight">2.5-3小时</span>。</td>
-                            </tr>
-                            <tr>
-                                <td>下午 (13:00-16:00)</td>
-                                <td><i class="fas fa-paint-brush text-blue-500"></i> 中国美术学院美术馆</td>
-                                <td>杭州市西湖区南山路218号</td>
-                                <td>感受艺术氛围，建议提前查询开放时间与展览。</td>
-                            </tr>
-                            <tr>
-                                <td>傍晚 (16:30-17:30)</td>
-                                <td><i class="fas fa-car text-purple-500"></i> 杭州 → 桐庐</td>
-                                <td>自驾</td>
-                                <td>车程：<span class="text-highlight">约 57分钟 (71.53公里)</span>。<br>导航至桐庐富春江骏悦酒店。</td>
-                            </tr>
-                            <tr>
-                                <td>晚上</td>
-                                <td><i class="fas fa-utensils text-orange-500"></i> 桐庐地道美食</td>
-                                <td>桐庐富春江骏悦酒店餐厅 / 富春江渔村 / 方埠小吃店</td>
-                                <td>推荐：富春江鲥鱼、油焖笋、桐庐板栗烧肉、本地土鸡煲。</td>
-                            </tr>
-                            <!-- Day 2 -->
-                            <tr>
-                                <td rowspan="3">D2<br>6月7日 (周六)</td>
-                                <td>上午/下午</td>
-                                <td><i class="fas fa-water text-green-500"></i> 雅鲁激流探险漂流</td>
-                                <td>桐庐合村村</td>
-                                <td>车程：<span class="text-highlight">约 66分钟 (51.71公里)</span>。<br>刺激漂流，建议提前预订，携带速干衣物。</td>
-                            </tr>
-                            <tr>
-                                <td>下午</td>
-                                <td><i class="fas fa-hotel text-yellow-500"></i> 返回桐庐富春江骏悦酒店</td>
-                                <td>桐庐富春江骏悦酒店</td>
-                                <td>车程：<span class="text-highlight">约 69分钟 (52.27公里)</span>。<br>休息调整。</td>
-                            </tr>
-                            <tr>
-                                <td>晚上</td>
-                                <td><i class="fas fa-utensils text-orange-500"></i> 桐庐地道美食</td>
-                                <td>三桥农家乐 / 桐庐老街小吃</td>
-                                <td>推荐：散养土鸡、时令蔬菜、桐庐麦饼、油沸粿、米粿。</td>
-                            </tr>
-                            <!-- Day 3 -->
-                            <tr>
-                                <td rowspan="4">D3<br>6月8日 (周日)</td>
-                                <td>上午 (9:00-11:30)</td>
-                                <td><i class="fas fa-car text-purple-500"></i> 桐庐 → 乌镇</td>
-                                <td>自驾</td>
-                                <td>车程：<span class="text-highlight">约 2小时8分钟 (164.24公里)</span>。<br>抵达乌镇。</td>
-                            </tr>
-                            <tr>
-                                <td>上午/中午</td>
-                                <td><i class="fas fa-gopuram text-blue-500"></i> 游览乌镇西栅</td>
-                                <td>乌镇景区</td>
-                                <td>体验水乡风情，拍照留念，可尝试摇橹船。</td>
-                            </tr>
-                            <tr>
-                                <td>中午/下午</td>
-                                <td><i class="fas fa-utensils text-orange-500"></i> 乌镇午餐</td>
-                                <td>乌镇景区内餐厅 / 乌镇老街饭店</td>
-                                <td>推荐：酱鸭、白水鱼、红烧羊肉、定胜糕、姑嫂饼。</td>
-                            </tr>
-                            <tr>
-                                <td>下午 (15:00-)</td>
-                                <td><i class="fas fa-car text-purple-500"></i> 乌镇 → 返回上海</td>
-                                <td>自驾</td>
-                                <td>预计车程 <span class="text-highlight">1.5-2小时</span>。</td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <section class="mb-8 fade-in-up" data-delay="1.2s">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-info-circle mr-3 text-blue-600"></i>实用信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-red-800 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>重要提示与注意事项</h3>
+                    <ul class="list-none p-0 text-gray-700">
+                        <li class="mb-1"><i class="fas fa-umbrella text-red-500 mr-2"></i>携带雨具：天气多变，备好雨伞。</li>
+                        <li class="mb-1"><i class="fas fa-ticket-alt text-red-500 mr-2"></i>门票预订：建议提前线上购票，避开高峰期。</li>
+                        <li class="mb-1"><i class="fas fa-wallet text-red-500 mr-2"></i>移动支付：提前充值交通卡或准备移动支付。</li>
+                        <li class="mb-1"><i class="fas fa-camera text-red-500 mr-2"></i>保管物品：景点游客较多，注意保管随身物品。</li>
+                        <li class="mb-1"><i class="fas fa-sun text-red-500 mr-2"></i>防晒：夏季注意防晒。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border-l-4 border-gray-500 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 flex items-center"><i class="fas fa-phone-alt mr-2"></i>紧急联系电话</h3>
+                    <ul class="list-none p-0 text-gray-700">
+                        <li class="mb-1"><i class="fas fa-headset text-gray-500 mr-2"></i>旅游咨询：021-12301 (上海) / 12345 (全国政务服务热线)</li>
+                        <li class="mb-1"><i class="fas fa-ambulance text-gray-500 mr-2"></i>紧急求助：110（警察）/ 120（急救）</li>
+                        <li class="mb-1"><i class="fas fa-user-shield text-gray-500 mr-2"></i>酒店电话：请查阅酒店预订信息</li>
+                    </ul>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2 mt-4 flex items-center"><i class="fas fa-suitcase-rolling mr-2"></i>行李清单提醒</h3>
+                    <ul class="list-none p-0 text-gray-700">
+                        <li class="mb-1"><i class="fas fa-check text-gray-500 mr-2"></i>身份证件、现金、银行卡</li>
+                        <li class="mb-1"><i class="fas fa-check text-gray-500 mr-2"></i>充电宝、充电器</li>
+                        <li class="mb-1"><i class="fas fa-check text-gray-500 mr-2"></i>个人洗漱用品、常用药品</li>
+                        <li class="mb-1"><i class="fas fa-check text-gray-500 mr-2"></i>舒适的鞋子、换洗衣物</li>
+                    </ul>
                 </div>
             </div>
+        </section>
 
-            <!-- 交通信息区 -->
-            <div class="main-card">
-                <h2><i class="fas fa-car"></i>交通信息</h2>
-                <div class="mini-card transport">
-                    <i class="fas fa-route"></i>
-                    <div>
-                        <p class="font-semibold">全程自驾</p>
-                        <p class="text-sm text-gray-600">请使用高德地图导航，注意路况和高速限速。部分景点停车位可能紧张，建议提前规划。</p>
-                    </div>
-                </div>
-                <div class="mini-card transport">
-                    <i class="fas fa-map-pin"></i>
-                    <div>
-                        <p class="font-semibold">主要目的地坐标</p>
-                        <p class="text-sm text-gray-600">
-                            中国美术学院美术馆: 120.076371,30.163463<br>
-                            桐庐富春江骏悦酒店: 119.686892,29.800344<br>
-                            雅鲁激流探险漂流: 119.311142,29.935145<br>
-                            乌镇: 120.493792,30.741511
-                        </p>
-                    </div>
-                </div>
-                <div class="mini-card transport">
-                    <i class="fas fa-gas-pump"></i>
-                    <div>
-                        <p class="font-semibold">加油与充电</p>
-                        <p class="text-sm text-gray-600">沿途高速服务区均有加油站。若电动车，请提前规划充电桩。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 住宿与餐饮区 -->
-            <div class="main-card">
-                <h2><i class="fas fa-hotel"></i>住宿与餐饮</h2>
-                <div class="mini-card accommodation">
-                    <i class="fas fa-bed"></i>
-                    <div>
-                        <p class="font-semibold">住宿：桐庐富春江骏悦酒店 (两晚)</p>
-                        <p class="text-sm text-gray-600">
-                            <span class="text-highlight">地址：</span> 桐庐县环城南路18号 (请自行核对)<br>
-                            <span class="text-highlight">入住/退房：</span> D1入住，D3退房。<br>
-                            <span class="text-highlight">联系方式：</span> (请查询酒店官网或预订信息)
-                        </p>
-                    </div>
-                </div>
-                <div class="mini-card food">
-                    <i class="fas fa-utensils"></i>
-                    <div>
-                        <p class="font-semibold">餐饮推荐</p>
-                        <p class="text-sm text-gray-600">
-                            <span class="font-semibold">桐庐：</span> 富春江渔村、方埠小吃店、三桥农家乐。<br>
-                            <span class="font-semibold">乌镇：</span> 景区内“民国时代”、“锦岸私房菜”，或景区外“乌镇老街饭店”。
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 实用信息区 -->
-            <div class="main-card">
-                <h2><i class="fas fa-info-circle"></i>实用提示与注意事项</h2>
-                <div class="mini-card alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <p class="font-semibold">重要提示</p>
-                        <ul class="list-disc list-inside text-sm text-gray-600">
-                            <li>漂流、美术馆、乌镇等景点可能需要<span class="text-highlight">提前预订门票或预约</span>。</li>
-                            <li>6月天气炎热，注意<span class="text-highlight">防晒、补水</span>。</li>
-                            <li>漂流活动请穿着<span class="text-highlight">速干衣物</span>，携带备用衣物和拖鞋。</li>
-                            <li>自驾请注意行车安全，导航实时路况。</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="mini-card info">
-                    <i class="fas fa-phone-alt"></i>
-                    <div>
-                        <p class="font-semibold">紧急联系电话</p>
-                        <ul class="list-disc list-inside text-sm text-gray-600">
-                            <li>旅游咨询: 021-12301 (上海) / 当地旅游热线</li>
-                            <li>紧急求助: 110 (警察) / 120 (急救)</li>
-                            <li>酒店联系方式：(请自行填写)</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 行李清单提醒 (可选) -->
-            <div class="main-card">
-                <h2><i class="fas fa-suitcase"></i>行李清单提醒</h2>
-                <ul class="list-disc list-inside text-gray-700">
-                    <li>身份证、驾驶证、行驶证</li>
-                    <li>手机、充电器、充电宝</li>
-                    <li>防晒霜、墨镜、帽子</li>
-                    <li>舒适的鞋子 (运动鞋、拖鞋)</li>
-                    <li>雨具 (雨伞或雨衣)</li>
-                    <li>个人洗漱用品、常用药品</li>
-                    <li>速干衣物 (漂流专用)、备用衣物</li>
-                    <li>相机及配件 (可选)</li>
-                    <li>少量现金 (部分小店可能只支持现金)</li>
-                </ul>
-            </div>
-        </div>
-
-        <p class="text-center text-sm text-gray-500 mt-8 mb-4 border-t pt-4 border-gray-200">
-            本旅行规划表由AI生成，仅供参考，请以实际情况为准。祝您旅途愉快！
-        </p>
     </div>
 
     <script>
-        // Intersection Observer for fade-in animations
+        // JavaScript for print functionality, Intersection Observer animations, and Chart.js
         document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.main-card, .mini-card');
+            // 打印按钮功能
+            const printBtn = document.getElementById('printBtn');
+            if (printBtn) {
+                printBtn.addEventListener('click', () => {
+                    window.print();
+                });
+            }
+
+            // Intersection Observer 实现淡入/向上滑动动画
+            const observerOptions = {
+                root: null, // 视口作为根
+                rootMargin: '0px',
+                threshold: 0.1 // 元素10%进入视口时触发
+            };
 
             const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in');
-                        // Optional: Add a slight delay for staggered effect for main-cards
-                        if (entry.target.classList.contains('main-card')) {
-                            const index = Array.from(cards).indexOf(entry.target);
-                            entry.target.style.transitionDelay = `${index * 0.1}s`;
-                        }
-                        observer.unobserve(entry.target); // Stop observing once animated
+                        const delay = entry.target.dataset.delay || '0s';
+                        // 使用setTimeout来创建交错动画效果
+                        setTimeout(() => {
+                            entry.target.classList.add('is-visible');
+                        }, parseFloat(delay) * 1000); // 将延迟字符串转换为毫秒
+                        observer.unobserve(entry.target); // 一旦可见，停止观察
                     }
                 });
-            }, {
-                threshold: 0.1 // Trigger when 10% of the element is visible
+            }, observerOptions);
+
+            // 观察所有带有 'fade-in-up' 类的元素
+            document.querySelectorAll('.fade-in-up').forEach(element => {
+                observer.observe(element);
             });
 
-            cards.forEach(card => {
-                observer.observe(card);
-            });
-
-            // Initialize Chart.js for Budget Chart
-            const ctx = document.getElementById('budgetChart').getContext('2d');
-            const budgetChart = new Chart(ctx, {
-                type: 'doughnut', // Changed to doughnut for a cleaner look
-                data: {
-                    labels: ['住宿', '交通', '门票', '餐饮', '其他'],
-                    datasets: [{
-                        label: '预算分配',
-                        data: [25, 15, 20, 30, 10], // Example percentages
-                        backgroundColor: [
-                            'rgba(52, 152, 219, 0.7)', // Blue
-                            'rgba(155, 89, 182, 0.7)', // Purple
-                            'rgba(46, 204, 113, 0.7)', // Green
-                            'rgba(230, 126, 34, 0.7)',  // Orange
-                            'rgba(149, 165, 166, 0.7)'  // Gray
-                        ],
-                        borderColor: [
-                            'rgba(52, 152, 219, 1)',
-                            'rgba(155, 89, 182, 1)',
-                            'rgba(46, 204, 113, 1)',
-                            'rgba(230, 126, 34, 1)',
-                            'rgba(149, 165, 166, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Allow custom size
-                    cutoutPercentage: 60, // Make it a doughnut chart
-                    plugins: {
-                        legend: {
-                            position: 'bottom', // Move legend to bottom for better print layout
-                            labels: {
-                                font: {
-                                    family: 'Open Sans',
-                                    size: 12,
-                                    weight: 'normal'
-                                },
-                                color: '#555'
-                            }
-                        },
-                        title: {
-                            display: false, // Title handled by h2
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
+            // Chart.js 费用预算概览图表
+            const ctx = document.getElementById('budgetChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'pie', // 饼图
+                    data: {
+                        labels: ['交通', '住宿', '餐饮', '门票/活动', '购物/其他'],
+                        datasets: [{
+                            data: [25, 30, 20, 15, 10], // 示例数据，可根据实际预算调整
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)', /* blue-500 */
+                                'rgba(124, 58, 237, 0.8)', /* violet-500 */
+                                'rgba(234, 88, 12, 0.8)',  /* orange-600 */
+                                'rgba(6, 182, 212, 0.8)',  /* cyan-500 */
+                                'rgba(100, 116, 139, 0.8)' /* slate-500 */
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // 允许图表容器控制尺寸
+                        plugins: {
+                            legend: {
+                                position: 'right', // 图例放在右侧
+                                labels: {
+                                    font: {
+                                        size: 14,
+                                        family: 'Noto Sans SC'
                                     }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + '%'; // Show percentage
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed !== null) {
+                                            label += context.parsed + '%'; // 显示百分比
+                                        }
+                                        return label;
                                     }
-                                    return label;
                                 }
                             }
-                        }
-                    },
-                    layout: {
-                        padding: {
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0
+                        },
+                        // 确保在打印时图表不会被切割
+                        layout: {
+                            padding: {
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         });
     </script>
 </body>

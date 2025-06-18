@@ -3,782 +3,437 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人工智能趋势报告 - BOND</title>
-    <script src="https://cdn.tailwindcss.com/3.4.3"></script>
+    <title>珠海3天2晚旅行规划表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <style>
+        /* --- 基本设置与变量 --- */
         :root {
-            --highlight-color: #00AEEF; /* Tech Blue - BOND doesn't have a strong primary public brand color */
-            --highlight-color-rgb: 0, 174, 239;
-            --card-bg: #1a1a1a;
-            --card-border: #333333;
-            --text-primary: #f0f0f0;
-            --text-secondary: #a0a0a0;
-            --text-muted: #6b7280;
+            --font-primary: 'Noto Sans SC', sans-serif;
+            --font-secondary: 'Montserrat', sans-serif;
+            --color-text: #333;
+            --color-primary: #0077b6;
+            --color-secondary: #00b4d8;
+            --color-accent: #ff6b6b;
+            --color-background: #f8f9fa;
+            --color-border: #dee2e6;
         }
 
         body {
-            background-color: #000000;
-            color: var(--text-primary);
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--color-background);
+            font-family: var(--font-primary);
+            color: var(--color-text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
         }
 
-        .main-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        /* --- 打印按钮 --- */
+        .print-button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
         }
 
-        .mini-card {
-            background-color: #222222; /* Slightly lighter than main card for depth */
-            border: 1px solid var(--card-border);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: transform 0.3s ease-in-out;
-        }
-        .mini-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .highlight-text {
-            color: var(--highlight-color);
-        }
-
-        .tech-gradient {
-            background: linear-gradient(135deg, rgba(var(--highlight-color-rgb), 0.3) 0%, rgba(var(--highlight-color-rgb), 0.1) 100%);
-        }
-        .tech-gradient-stronger {
-             background: linear-gradient(135deg, rgba(var(--highlight-color-rgb), 0.5) 0%, rgba(var(--highlight-color-rgb), 0.2) 100%);
+        .print-button {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-family: var(--font-primary);
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
         }
 
-        /* Animation */
-        .reveal-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        .print-button:hover {
+            background-color: var(--color-secondary);
         }
 
-        .reveal-on-scroll.revealed {
-            opacity: 1;
-            transform: translateY(0);
+        /* --- A4页面容器 --- */
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm; /* 使用min-height允许多页 */
+            margin: 20px auto;
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* --- 页面布局 --- */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 15px;
+        }
+
+        /* --- 页眉 --- */
+        .header {
+            border-bottom: 2px solid var(--color-primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header h1 {
+            font-family: var(--font-primary);
+            font-weight: 700;
+            font-size: 28pt;
+            color: var(--color-primary);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .header-info {
+            font-size: 10pt;
+            text-align: right;
+            color: #666;
         }
         
-        /* Chart.js dark mode defaults */
-        Chart.defaults.color = 'rgba(255, 255, 255, 0.7)';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.2)';
-        Chart.defaults.font.family = "'Helvetica Neue', 'Arial', sans-serif";
+        .header-icon {
+            color: var(--color-primary);
+            opacity: 0.15;
+            font-size: 80px;
+            position: absolute;
+            top: 40px;
+            right: 40px;
+        }
+        
+        /* --- 详细行程 (左侧) --- */
+        .itinerary-column h2 {
+            font-size: 18pt;
+            color: var(--color-primary);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 5px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
 
-        /* Specific styling for page 1 as an intro slide */
-        .intro-slide {
+        .timeline {
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background-color: var(--color-border);
+        }
+
+        .timeline-item {
+            margin-bottom: 20px;
+            position: relative;
+            page-break-inside: avoid;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid var(--color-secondary);
+        }
+        
+        .timeline-item strong {
+            font-size: 11pt;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        
+        .timeline-time {
+            font-family: var(--font-secondary);
+            font-weight: 700;
+            font-size: 9pt;
+            color: var(--color-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .timeline-details {
+            font-size: 9pt;
+            color: #555;
+            margin-top: 4px;
+        }
+        
+        .timeline-details i {
+            margin-right: 5px;
+            width: 15px;
+            text-align: center;
+            color: #888;
+        }
+
+        /* --- 信息卡片 (右侧) --- */
+        .info-column {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
-        .intro-slide .logo-char {
-            font-size: 10rem; /* Large 'O' like character */
-            font-weight: 200; /* Lighter font weight */
-            color: var(--highlight-color);
-            opacity: 0.6;
-            margin-bottom: 2rem;
-        }
-        .intro-slide h1 {
-            font-size: 3.5rem; /* Trends - */
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-        .intro-slide h2 {
-            font-size: 4.5rem; /* Artificial Intelligence */
-            font-weight: 700;
-            color: var(--highlight-color);
-            margin-bottom: 3rem;
-        }
-        .intro-slide p {
-            font-size: 1.5rem; /* BOND, May 2025 */
-            color: var(--text-secondary);
+            gap: 15px;
         }
 
+        .info-card {
+            background-color: #f8f9fa;
+            border: 1px solid var(--color-border);
+            border-radius: 5px;
+            padding: 15px;
+            page-break-inside: avoid;
+        }
+
+        .info-card h3 {
+            font-size: 12pt;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .info-card h3 i {
+            margin-right: 8px;
+            font-size: 14pt;
+        }
+
+        .info-card ul {
+            padding-left: 20px;
+            margin: 0;
+            font-size: 9pt;
+        }
+        
+        .info-card p, .info-card li {
+            font-size: 9pt;
+            color: #555;
+            margin: 0 0 5px 0;
+        }
+
+        /* --- 打印样式 --- */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            body {
+                background-color: white;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .print-button-container {
+                display: none;
+            }
+
+            .page {
+                width: 100%;
+                min-height: 0;
+                margin: 0;
+                box-shadow: none;
+                padding: 15mm; /* 确保打印边距 */
+            }
+            
+            .header-icon { display: none; }
+
+            .info-card {
+                background-color: #f9f9f9 !important; /* 保持轻微背景以区分 */
+                border: 1px solid #ddd !important;
+            }
+
+            h1, h2, h3, strong {
+                color: #000 !important;
+            }
+            
+            .timeline-item::before {
+                border-color: #999 !important;
+            }
+            
+            .timeline-time {
+                color: #555 !important;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-    <!-- Page 1: Special Intro Slide -->
-    <section class="intro-slide reveal-on-scroll">
-        <div class="logo-char">O</div>
-        <h1>趋势 –</h1>
-        <h2>人工智能</h2>
-        <p>BOND</p>
-        <p>May 2025</p>
-    </section>
-
-    <div class="container mx-auto px-4 py-8 md:py-16">
-        <!-- Header / Report Title from Page 2 -->
-        <header class="text-center mb-12 md:mb-20 reveal-on-scroll">
-            <i class="fas fa-brain fa-3x mb-4 highlight-text"></i>
-            <h1 class="text-4xl md:text-5xl font-bold mb-2">人工智能趋势 (AI)</h1>
-            <p class="text-lg md:text-xl text-gray-400 font-semibold">Trends – Artificial Intelligence (AI)</p>
-            <p class="text-md text-gray-500 mt-2">May 30, 2025</p>
-            <p class="text-md text-gray-500">Mary Meeker / Jay Simons / Daegwon Chae / Alexander Krey</p>
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMzEuODQgMEwyMC41NiAwaC02LjQ4bC01LjIgMTMuNTJMNC40OCAwSDBMNy44NCAxOS44NEwxMS42IDMwLjcyTDE2LjMyIDE5LjMyTDIwLjU2IDMwLjcyTDI5LjIgMzAuNzJMMjEuMyAxMy41MkwzMS44NCAwWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTQ5LjY4IDAuMDgwMDAxTDQ5LjY4IDE5LjMyTDQzLjIgMTkuMzJMNCAxOS4zMiAwTDQzLjIgMEw0OS42OCAwLjA4MDAwMVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgMTEuNCkiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcl8xXzIpIi8+CjxwYXRoIGQ9Ik00My4yIDE5LjMyTDQzLjIgMEw0OS42OCAwTDQ5LjY4IDE5LjMyTDQzLjIgMTkuMzJaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIDEyLjQpIiBmaWxsPSIjRkZGRkZGIiBmaWxsLW9wYWNpdHk9IjAuNSIvPgo8cGF0aCBkPSJNNzAuOCA5LjY4MDAxQzcwLjggNC4zMjg0NCA2Ni41MTQ3IDAgNjEuMzIgMEM1Ni4xMjUzIDAgNTEuODQgNC4zMjg0NCA1MS44NCA5LjY4MDAxQzUxLjg0IDE1LjAzMTYgNTYuMTI1MyAxOS4zNiA2MS4zMiAxOS4zNkM2Ni41MTQ3IDE5LjM2IDcwLjggMTUuMDMxNiA3MC44IDkuNjgwMDFaTTY0LjMyIDkuNjgwMDFDNjQuMzIgMTEuNDQ4NCA2Mi45Njg0IDEyLjg4IDYxLjMyIDEyLjg4QzU5LjY3MTYgMTIuODggNTguMzIgMTEuNDQ4NCA1OC4zMiA5LjY4MDAxQzU4LjMyIDcuOTEwNzEgNTkuNjcxNiA2LjQ4MDAxIDYxLjMyIDYuNDgwMDFDNjIuOTY4NCA2LjQ4MDAxIDY0LjMyIDcuOTEwNzEgNjQuMzIgOS42ODAwMVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgMTEuNCkiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik05NS42IDE5LjMyTDg0LjMyIDE5LjMyTDg0LjMyIDExLjQ0TDk1LjYgMTEuNDRMOTUuNiAxOS4zMlpNOTUuNiA4LjU2MDAxTDg0LjMyIDguNTYwMDFMODQuMzIgMEw5NS42IDBMODkuOTIgMEw5NS42IDguNTYwMDFaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIDEyLjQpIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNODYuMDggMTEuNDRMODYuMDggNC45NkM4Ni4wOCAyLjE5MiA4OC4yNTYgMCA5MS4wNCAwQzkzLjgwOCAwIDk2LjA4IDIuMTkyIDk2LjA4IDQuOTZMOTYuMDggMTEuNDRMNzguMTYgMTEuNDRMODQuNTYgMEw3MS43NiAwTDc5LjY4IDEzLjUyTDY4LjQgMzAuNzJMNzQuOCAzMC43Mkw4Ni4wOCAxMS40NFoiIGZpbGw9IndoaXRlIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfMV8yIiB4MT0iNDYuNDQiIHkxPSIwIiB4Mj0iNDYuNDQiIHkyPSIxOS4zMiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjRkZGRkZGIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0ZGRkZGRiIgc3RvcC1vcGFjaXR5PSIwIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cg==" alt="BOND Logo" class="h-10 mx-auto mt-6 opacity-80"/>
-        </header>
-
-        <!-- Context Section -->
-        <section class="main-card rounded-2xl p-6 md:p-8 mb-12 reveal-on-scroll">
-            <h2 class="text-3xl font-bold mb-6 highlight-text">背景解读 <span class="text-lg text-gray-400 font-normal">Context</span></h2>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">我们着手汇编与人工智能相关的基础趋势。最初收集的一些零散数据点演变成了如今这份庞大的报告。每当我们更新一个图表，往往就需要更新另一个——这是一场永无止境的数据“打地鼠”游戏……这种模式丝毫没有停止的迹象……并且随着科技巨头、新兴挑战者和主权国家之间的竞争加速，它将变得更加复杂。</p>
-            <blockquote class="border-l-4 border-[var(--highlight-color)] pl-4 italic text-gray-400 my-6">
-                <p>"互联网奠基人"之一的文特·瑟夫在1999年曾说：“……他们说互联网行业的一年就像狗的一年——相当于普通人的七年。” 当时，互联网催化的变革速度是前所未有的。</p>
-            </blockquote>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">现在，请思考人工智能用户和使用趋势正在以更快的速度增长……机器的进步甚至可能超越我们。</p>
-            <p class="text-lg text-gray-300 mb-6 leading-relaxed">数据表明，人工智能技术演进相关的变革速度和范围确实是前所未有的。本文档充满了用户、使用和收入图表，它们都呈现出上升趋势……通常也伴随着支出图表的同步增长。</p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                    <i class="fas fa-globe-americas fa-2x mb-3 highlight-text"></i>
-                    <h3 class="text-2xl font-bold mb-1">全球触达</h3>
-                    <p class="text-sm text-gray-400">Global Reach</p>
-                    <p class="text-gray-300 mt-2 text-sm">创作者/投资者/消费者正利用全球互联网基础设施，通过联网设备触达55亿公民。</p>
-                </div>
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                    <i class="fas fa-database fa-2x mb-3 highlight-text"></i>
-                    <h3 class="text-2xl font-bold mb-1">海量数据</h3>
-                    <p class="text-sm text-gray-400">Massive Datasets</p>
-                    <p class="text-gray-300 mt-2 text-sm">过去三十年积累的不断增长的数字数据集为AI发展提供了燃料。</p>
-                </div>
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                    <i class="fas fa-lightbulb fa-2x mb-3 highlight-text"></i>
-                    <h3 class="text-2xl font-bold mb-1">LLM突破</h3>
-                    <p class="text-sm text-gray-400">LLM Breakthrough</p>
-                    <p class="text-gray-300 mt-2 text-sm">大型语言模型(LLM)的突破，特别是OpenAI ChatGPT (2022年11月)的易用和快速界面，释放了其潜力。</p>
-                </div>
-            </div>
-
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">此外，相对较新的人工智能公司创始人在创新/产品发布/投资/收购/现金消耗和融资方面尤其积极。与此同时，更多传统的科技公司（通常有创始人参与）也越来越多地将其大量的自由现金流投向人工智能，以推动增长并抵御攻击者。</p>
-            <p class="text-lg text-gray-300 mb-6 leading-relaxed">全球竞争——尤其是在中美科技发展方面——异常激烈。</p>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">我们希望这份汇编能够促进关于技术/金融/社会/物理/地缘政治等广泛变革的讨论。毫无疑问，随着我们共同适应这个不断演变的旅程，人类（和机器）将改进这些观点——知识及其传播方式正在以新的方式迅速升级。</p>
-            <p class="text-md text-gray-400">特别感谢Grant Watson、Keeyan Sanjasaz以及BOND的同事们，他们帮助指引了方向并将这份报告变为现实。同时感谢所有直接或间接通过你们的工作帮助并推动技术向前发展的朋友和技术构建者们。</p>
-        </section>
-
-        <!-- Outline Section -->
-        <section class="main-card rounded-2xl p-6 md:p-8 mb-12 reveal-on-scroll">
-            <h2 class="text-3xl font-bold mb-6 highlight-text">报告大纲 <span class="text-lg text-gray-400 font-normal">Outline</span></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">1</span>
-                    <h3 class="text-xl font-semibold mb-1">变化是否空前？</h3>
-                    <p class="text-sm text-gray-400">Seem Like Change Happening Faster Than Ever?</p>
-                    <p class="text-gray-300 text-xs mt-1">是的，的确如此 (Yes, It Is)</p>
-                    <p class="text-xs text-gray-500 mt-2">页码 9-51</p>
-                </div>
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">2</span>
-                    <h3 class="text-xl font-semibold mb-1">AI用户+使用+资本支出增长</h3>
-                    <p class="text-sm text-gray-400">AI User + Usage + CapEx Growth</p>
-                    <p class="text-gray-300 text-xs mt-1">史无前例 (Unprecedented)</p>
-                     <p class="text-xs text-gray-500 mt-2">页码 52-128</p>
-                </div>
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                     <span class="text-5xl font-bold highlight-text mb-2">3</span>
-                    <h3 class="text-xl font-semibold mb-1">AI模型算力成本高昂/上升 + 推理成本/Token下降</h3>
-                    <p class="text-sm text-gray-400">AI Model Compute Costs High / Rising + Inference Costs Per Token Falling</p>
-                    <p class="text-gray-300 text-xs mt-1">性能趋同 + 开发者使用量上升 (Performance Converging + Developer Usage Rising)</p>
-                     <p class="text-xs text-gray-500 mt-2">页码 129-152</p>
-                </div>
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">4</span>
-                    <h3 class="text-xl font-semibold mb-1">AI使用+成本+亏损增长</h3>
-                    <p class="text-sm text-gray-400">AI Usage + Cost + Loss Growth</p>
-                    <p class="text-gray-300 text-xs mt-1">史无前例 (Unprecedented)</p>
-                     <p class="text-xs text-gray-500 mt-2">页码 153-247</p>
-                </div>
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">5</span>
-                    <h3 class="text-xl font-semibold mb-1">AI变现威胁</h3>
-                    <p class="text-sm text-gray-400">AI Monetization Threats</p>
-                    <p class="text-gray-300 text-xs mt-1">竞争加剧 + 开源势头 + 中国崛起 (Rising Competition + Open-Source Momentum + China’s Rise)</p>
-                     <p class="text-xs text-gray-500 mt-2">页码 248-298</p>
-                </div>
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">6</span>
-                    <h3 class="text-xl font-semibold mb-1">AI与物理世界融合加速</h3>
-                    <p class="text-sm text-gray-400">AI & Physical World Ramps</p>
-                    <p class="text-gray-300 text-xs mt-1">快速 + 数据驱动 (Fast + Data-Driven)</p>
-                     <p class="text-xs text-gray-500 mt-2">页码 299-307</p>
-                </div>
-                 <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">7</span>
-                    <h3 class="text-xl font-semibold mb-1">AI驱动全球互联网用户增长提速</h3>
-                    <p class="text-sm text-gray-400">Global Internet User Ramps Powered by AI from Get-Go</p>
-                    <p class="text-gray-300 text-xs mt-1">前所未见的增长 (Growth We Have Not Seen Likes of Before)</p>
-                     <p class="text-xs text-gray-500 mt-2">页码 308-322</p>
-                </div>
-                <div class="mini-card rounded-lg p-4 tech-gradient reveal-on-scroll">
-                    <span class="text-5xl font-bold highlight-text mb-2">8</span>
-                    <h3 class="text-xl font-semibold mb-1">AI与工作变革</h3>
-                    <p class="text-sm text-gray-400">AI & Work Evolution</p>
-                    <p class="text-gray-300 text-xs mt-1">真实 + 迅速 (Real + Rapid)</p>
-                    <p class="text-xs text-gray-500 mt-2">页码 323-336</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Charts Section -->
-        <section class="main-card rounded-2xl p-6 md:p-8 mb-12 reveal-on-scroll">
-            <h2 class="text-3xl font-bold mb-6 highlight-text">图表胜千言 <span class="text-lg text-gray-400 font-normal">Charts Paint Thousands of Words...</span></h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Chart 1 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">变化是否空前？是的，的确如此</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">领先芯片制造商生态系统开发者数量</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart1"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：领先芯片制造商 (详情见P38)</p>
-                </div>
-                <!-- Chart 2 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI用户+使用+资本支出增长 = 史无前例</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">领先美国LLM用户数量</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart2"></canvas></div>
-                     <p class="text-xs text-gray-500 mt-2 text-center">来源：公司披露 (详情见P55)</p>
-                </div>
-                <!-- Chart 2.1 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI用户+使用+资本支出增长 = 史无前例</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">互联网 vs. 领先美国LLM：北美以外当前用户总数占比</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart2_1"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：联合国/ITU (3/25), Sensor Tower (5/25) (详情见P56)</p>
-                </div>
-                <!-- Chart 2.2 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI用户+使用+资本支出增长 = 史无前例</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">六大美国科技公司资本支出 ($B)</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart2_2"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：Capital IQ (3/25), Morgan Stanley (详情见P97)</p>
-                </div>
-                <!-- Chart 3 -->
-                 <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI模型算力成本高/升+推理成本/Token降=性能趋同+开发者用量升</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">关键技术相对于发布年份的成本</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart3"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：Richard Hirsh; John McCallum; OpenAI (详情见P138)</p>
-                </div>
-                <!-- Chart 4 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI使用+成本+亏损增长 = 史无前例</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">领先美国AI LLM收入 vs. 计算费用</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart4"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：The Information, 公开估算 (详情见P173)</p>
-                </div>
-                 <!-- Chart 5 -->
-                 <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI变现威胁=竞争加剧+开源势头+中国崛起</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">领先美国LLM vs. 中国LLM桌面用户份额</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart5"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：YipitData (5/25) (详情见P293)</p>
-                </div>
-                <!-- Chart 5.1 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI变现威胁=竞争加剧+开源势头+中国崛起</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">中国 vs. 美国 vs. 世界其他地区工业机器人安装量</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart5_1"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：国际机器人联合会 (详情见P289)</p>
-                </div>
-                <!-- Chart 6 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI与物理世界融合加速 = 快速+数据驱动</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">共享出行 vs. 自动驾驶出租车，旧金山运营区市场份额</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart6"></canvas></div>
-                     <p class="text-xs text-gray-500 mt-2 text-center">来源：YipitData (4/25) (详情见P302)</p>
-                </div>
-                <!-- Chart 7 -->
-                <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI驱动全球互联网用户增长提速 = 前所未见的增长</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">领先美国LLM应用按地区用户分布</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart7"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：Sensor Tower (5/25) (详情见P315)</p>
-                </div>
-                 <!-- Chart 8 -->
-                 <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll col-span-1 lg:col-span-2"> <!-- Span 2 cols on larger screens -->
-                    <h3 class="text-xl font-semibold mb-1 text-center">AI与工作变革 = 真实+迅速</h3>
-                    <p class="text-sm text-gray-400 text-center mb-3">美国IT职位 – AI vs. 非AI</p>
-                    <div class="relative h-64 md:h-80"><canvas id="chart8"></canvas></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">来源：马里兰大学 UMD-LinkUp AIMaps (5/25) (详情见P332)</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Overview Section -->
-        <section class="main-card rounded-2xl p-6 md:p-8 mb-12 reveal-on-scroll">
-            <h2 class="text-3xl font-bold mb-6 highlight-text">概览 <span class="text-lg text-gray-400 font-normal">Overview...</span></h2>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">说世界正以前所未有的速度变化，这还是轻描淡写的。快速和变革性的技术创新/采用是这些变化的关键基础，全球大国的领导力演变也是如此。</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png" alt="Google Logo" class="h-10 mx-auto mb-3 filter grayscale brightness-200">
-                    <h3 class="text-2xl font-bold mb-1">Google (1998)</h3>
-                    <p class="text-sm text-gray-400">谷歌使命</p>
-                    <p class="text-gray-300 mt-2 text-sm">“整合全球信息，使人人皆可访问并从中受益。”</p>
-                </div>
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Alibaba_Group_logo.svg/1200px-Alibaba_Group_logo.svg.png" alt="Alibaba Logo" class="h-10 mx-auto mb-3 filter grayscale brightness-200 invert">
-                    <h3 class="text-2xl font-bold mb-1">Alibaba (1999)</h3>
-                    <p class="text-sm text-gray-400">阿里巴巴使命</p>
-                    <p class="text-gray-300 mt-2 text-sm">“让天下没有难做的生意。”</p>
-                </div>
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Facebook_f_logo_%282019%29.svg/1200px-Facebook_f_logo_%282019%29.svg.png" alt="Facebook Logo" class="h-10 mx-auto mb-3 filter grayscale brightness-200">
-                    <h3 class="text-2xl font-bold mb-1">Facebook (2004)</h3>
-                    <p class="text-sm text-gray-400">脸书使命</p>
-                    <p class="text-gray-300 mt-2 text-sm">“赋予人们分享的力量，让世界更开放、更连接。”</p>
-                </div>
-            </div>
-
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">快进到今天，世界有组织、互联互通且可访问的信息正被人工智能、加速的计算能力和半无国界资本所增压……所有这些都在推动巨大的变革。</p>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">体育为AI的持续改进提供了一个很好的类比。随着运动员不断让我们惊叹并打破记录，他们的天赋越来越多地通过更好的数据/输入/训练得到增强。商业也是如此，计算机正在消化海量数据集以变得更智能、更具竞争力。大型模型的突破、单位Token成本的下降、开源的普及和芯片性能的改进，正使新的技术进步变得越来越强大、可访问和经济可行。</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                     <i class="fab fa-rocketchat fa-2x mb-3 highlight-text"></i>
-                    <h3 class="text-2xl font-bold mb-1">ChatGPT现象</h3>
-                    <p class="text-sm text-gray-400">ChatGPT Phenomenon</p>
-                    <p class="text-gray-300 mt-2 text-sm">OpenAI的ChatGPT——基于用户/使用/变现指标——是历史上最大的“一夜成名”（成立九年后）。AI使用在消费者、开发者、企业和政府中激增。</p>
-                </div>
-                <div class="mini-card rounded-lg p-6 tech-gradient reveal-on-scroll">
-                    <i class="fas fa-globe fa-2x mb-3 highlight-text"></i>
-                    <h3 class="text-2xl font-bold mb-1">全球同步爆发</h3>
-                    <p class="text-sm text-gray-400">Simultaneous Global Growth</p>
-                    <p class="text-gray-300 mt-2 text-sm">与互联网1.0革命不同（技术始于美国并逐渐向全球扩散），ChatGPT几乎同时在全球大部分地区登场并增长。</p>
-                </div>
-            </div>
-            
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">与此同时，平台现有者和新兴挑战者正在竞相构建和部署下一代AI基础设施：智能体接口、企业副驾驶、真实世界自主系统和主权模型。</p>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">人工智能、计算基础设施和全球连接的快速进步正在从根本上重塑工作方式、资本部署方式以及领导力的定义——无论是公司还是国家层面。与此同时，全球大国之间的领导力也在演变，每个国家都在挑战对方的竞争和比较优势。我们看到世界上最强大的国家正受到不同程度的经济/社会/领土愿望的激励……</p>
-             <blockquote class="border-l-4 border-[var(--highlight-color)] pl-4 italic text-gray-400 my-6">
-                <p>“……日益地，技术和地缘政治这两股强大力量正在交织。Meta Platforms首席技术官Andrew Bosworth在最近的‘Possible’播客中将当前AI的状况描述为我们的太空竞赛，我们正在讨论的人，特别是中国，能力非常强……秘密很少，只有进步。你要确保自己永远不会落后。”</p>
-            </blockquote>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">现实是，AI领导力可能催生地缘政治领导力——反之亦然。</p>
-            <blockquote class="border-l-4 border-[var(--highlight-color)] pl-4 italic text-gray-400 my-6">
-                <p>“统计上讲，世界末日并不常发生。” —— 前T. Rowe Price董事长兼首席执行官Brian Rogers。</p>
-            </blockquote>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">作为投资者，我们总是假设一切都可能出错，但令人兴奋的部分是考虑什么是可能做对的。一次又一次，乐观主义是你能做的最好的赌注之一。观看AI为你工作的魔力感觉就像早期电子邮件和网络搜索的时代——这些技术从根本上改变了我们的世界。AI带来的更好/更快/更便宜的影响似乎同样神奇，甚至更快。</p>
-            <p class="text-lg text-gray-300 mb-6 leading-relaxed">毫无疑问，这也是危险和不确定的时代。但对人工智能的长期乐观是基于这样的理念：激烈的竞争和创新……日益普及的计算能力……AI赋能技术在全球的迅速采用……以及深思熟虑和审慎的领导力可以培养足够的敬畏和尊重，进而可能导致相互确保威慑。对一些人来说，AI的演变将造成逐底竞争；对另一些人来说，它将创造逐顶竞争。资本主义和创造性破坏的投机和狂热力量是构造性的。不可否认，这已经是‘游戏开始’，尤其是在美国、中国以及科技巨头们全力以赴的情况下。</p>
-             <p class="text-lg text-gray-300">在这份文档中，我们分享了来自第三方的数据/研究/基准，这些第三方使用了他们认为有效的方法——我们感谢许多人为说明这个独特动态时期的趋势所做的辛勤工作。我们的目标是为讨论添砖加瓦。</p>
-        </section>
-        
-        <!-- Placeholder for more content and charts based on the OCR -->
-        <!-- For example, a section on Technology Compounding -->
-        <section class="main-card rounded-2xl p-6 md:p-8 mb-12 reveal-on-scroll">
-            <h2 class="text-3xl font-bold mb-6 highlight-text">技术复利效应 <span class="text-lg text-gray-400 font-normal">Technology Compounding</span></h2>
-            <p class="text-lg text-gray-300 mb-4 leading-relaxed">数字背后的动力 (Numbers Behind The Momentum)</p>
-            <!-- Chart: Global GDP - Last 1,000+ Years -->
-            <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll mb-8">
-                <h3 class="text-xl font-semibold mb-1 text-center">全球GDP – 过去1000多年</h3>
-                <p class="text-sm text-gray-400 text-center mb-3">据Maddison项目</p>
-                <div class="relative h-96 md:h-[500px]"><canvas id="chartGlobalGDP"></canvas></div>
-                <p class="text-xs text-gray-500 mt-2 text-center">来源：Microsoft, Maddison Project, Our World in Data (详情见P12)</p>
-            </div>
-            <!-- Chart: Computing Cycles Over Time -->
-            <div class="mini-card rounded-lg p-4 tech-gradient-stronger reveal-on-scroll">
-                <h3 class="text-xl font-semibold mb-1 text-center">计算周期演进 – 1960s-2020s</h3>
-                 <p class="text-sm text-gray-400 text-center mb-3">据Morgan Stanley</p>
-                <div class="relative h-96 md:h-[500px]"><canvas id="chartComputingCycles"></canvas></div>
-                <p class="text-xs text-gray-500 mt-2 text-center">来源：Morgan Stanley (10/23) (详情见P13)</p>
-            </div>
-        </section>
-
-
-        <!-- Footer -->
-        <footer class="text-center py-8 mt-12 border-t border-gray-700 reveal-on-scroll">
-            <p class="text-gray-500">BOND © 2025. All rights reserved.</p>
-            <div class="mt-4 flex justify-center space-x-4">
-                <img src="https://s3-symbol-logo.tradingview.com/yipitdata--600.png" alt="YipitData" class="h-8 filter grayscale contrast-50 opacity-70">
-                <img src="https://sensortower-investor-prod.s3.amazonaws.com/31224/logo.png" alt="SensorTower" class="h-8 filter grayscale contrast-50 opacity-70">
-                <img src="https://www.similarweb.com/corp/wp-content/uploads/2023/03/logo.svg" alt="SimilarWeb" class="h-8 filter grayscale contrast-50 opacity-70">
-            </div>
-            <p class="text-xs text-gray-600 mt-2">Data Provided Under License to BOND</p>
-        </footer>
-
+    <div class="print-button-container">
+        <button class="print-button" onclick="window.print()"><i class="fas fa-print"></i> 打印此行程</button>
     </div>
 
-    <script>
-        // Animation on scroll
-        const revealElements = document.querySelectorAll('.reveal-on-scroll');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
-                if (entry.isIntersecting) {
-                    // Apply staggered delay for grid items
-                    if (entry.target.parentElement.classList.contains('grid')) {
-                         entry.target.style.transitionDelay = `${index * 0.05}s`;
-                    }
-                    entry.target.classList.add('revealed');
-                }
-            });
-        }, {
-            threshold: 0.1, // Trigger when 10% of the element is visible
-            // rootMargin: "0px 0px -50px 0px" // Optional: adjust trigger point
-        });
-        revealElements.forEach(el => observer.observe(el));
+    <div class="page">
+        <header class="header">
+            <div>
+                <h1>珠海3天2晚休闲美食之旅</h1>
+                <p style="font-size: 11pt; color: #555; margin: 5px 0 0 0;">为来自上海的朋友定制的老香洲休闲计划</p>
+            </div>
+            <div class="header-info">
+                <strong>旅行日期:</strong> 2025年9月28日 - 9月30日<br>
+                <strong>目的地:</strong> 广东 · 珠海 · 老香洲
+            </div>
+            <i class="fa-solid fa-water header-icon"></i>
+        </header>
 
-        // Chart.js Implementations
-        const highlightColor = getComputedStyle(document.documentElement).getPropertyValue('--highlight-color').trim();
-        const highlightColorRGB = getComputedStyle(document.documentElement).getPropertyValue('--highlight-color-rgb').trim();
-        
-        const chartOptions = (titleText, yLabel = '', xLabel = '') => ({
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true, labels: { color: 'rgba(255,255,255,0.9)'} },
-                title: { display: false, text: titleText, color: 'rgba(255,255,255,0.9)', font: { size: 16 } }
-            },
-            scales: {
-                y: {
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: 'rgba(255,255,255,0.7)' },
-                    title: { display: !!yLabel, text: yLabel, color: 'rgba(255,255,255,0.7)' }
-                },
-                x: {
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: 'rgba(255,255,255,0.7)' },
-                    title: { display: !!xLabel, text: xLabel, color: 'rgba(255,255,255,0.7)' }
-                }
-            }
-        });
-        
-        // Chart 1: Developers in Leading Chipmaker’s Ecosystem
-        if (document.getElementById('chart1')) {
-            new Chart(document.getElementById('chart1').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['2005', '2010', '2015', '2020', '2021', '2022', '2023', '2024', '2025'],
-                    datasets: [{
-                        label: '开发者数量 (百万)',
-                        data: [0.1, 0.5, 1, 2.5, 3, 4, 5, 5.5, 6],
-                        borderColor: highlightColor,
-                        backgroundColor: `rgba(${highlightColorRGB}, 0.2)`,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 3,
-                        pointBackgroundColor: highlightColor
-                    }]
-                },
-                options: chartOptions('领先芯片制造商生态系统开发者数量', '开发者数量 (百万)')
-            });
-        }
+        <div class="main-layout">
+            <!-- 左侧：详细行程 -->
+            <div class="itinerary-column">
+                <!-- DAY 1 -->
+                <h2>Day 1: 抵达珠海，市井与咖啡慢生活</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">上午</div>
+                        <strong><i class="fas fa-plane-departure"></i> 抵达与入住</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-bus-simple"></i> 从金湾机场乘坐机场大巴或出租车前往扬名广场/吉大附近酒店。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">12:30 - 14:00</div>
+                        <strong><i class="fas fa-utensils"></i> 午餐：隆都四季香饭店</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-location-dot"></i> 香洲区香湾街道碧海路18号<br>
+                            <i class="fa-solid fa-star"></i> 30年老字号，品尝招牌广府白切鸡、炒花甲。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">14:30 - 17:00</div>
+                        <strong><i class="fas fa-mug-saucer"></i> 老香洲 City Walk</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-person-walking"></i> 漫步狮山路、光明街，感受老街巷生活气息。<br>
+                            <i class="fa-solid fa-camera"></i> 在珠海最小复古咖啡店「彳亍咖啡」享受慢时光。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">18:00 - 19:30</div>
+                        <strong><i class="fas fa-utensils"></i> 晚餐：探煲·啫啫煲</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-fire-burner"></i> 品尝本地人推荐的啫啫煲，锅气十足，体验地道风味。
+                        </div>
+                    </div>
+                </div>
 
-        // Chart 2: Leading USA-Based LLM Users
-        if (document.getElementById('chart2')) {
-            new Chart(document.getElementById('chart2').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['10/22', '1/23', '4/23', '7/23', '10/23', '1/24', '4/24', '7/24', '10/24', '1/25', '4/25'],
-                    datasets: [{
-                        label: '周活跃用户 (百万)',
-                        data: [1, 20, 100, 200, 300, 400, 500, 600, 700, 750, 800],
-                        borderColor: highlightColor,
-                        backgroundColor: `rgba(${highlightColorRGB}, 0.2)`,
-                        tension: 0.4,
-                        fill: true,
-                         pointRadius: 3,
-                        pointBackgroundColor: highlightColor
-                    }]
-                },
-                options: chartOptions('领先美国LLM用户数量', '周活跃用户 (百万)')
-            });
-        }
+                <!-- DAY 2 -->
+                <h2 style="margin-top: 30px;">Day 2: 浪漫海滨风光与甜品享受</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">09:30 - 12:00</div>
+                        <strong><i class="fas fa-umbrella-beach"></i> 情侣路浪漫巡游</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-person-walking"></i> 游览城市阳台、香炉湾沙滩，漫步至爱情邮局和灯塔。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">12:30 - 14:00</div>
+                        <strong><i class="fas fa-utensils"></i> 午餐：濠轩阁生蚝火锅</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-location-dot"></i> 情侣路海边<br>
+                            <i class="fa-solid fa-star"></i> 品尝新鲜肥美的生蚝火锅，汤汁鲜美。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">14:30 - 16:30</div>
+                        <strong><i class="fas fa-mountain-sun"></i> 景山公园登高望远</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-cable-car"></i> 乘坐缆车上山，俯瞰珠海海湾全景，体验滑道下山。
+                        </div>
+                    </div>
+                     <div class="timeline-item">
+                        <div class="timeline-time">17:00 - 18:00</div>
+                        <strong><i class="fas fa-ice-cream"></i> 甜品：云初甜品店</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-location-dot"></i> 人民东路165号<br>
+                            <i class="fa-solid fa-star"></i> 必点大份量水果捞，尤其是芒果口味。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">晚上</div>
+                        <strong><i class="fas fa-moon"></i> 日月贝夜景与夜宵</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-landmark"></i> 前往野狸岛，欣赏珠海大剧院“日月贝”璀璨夜景。<br>
+                            <i class="fa-solid fa-shrimp"></i> 在「稻香粥档」享用海鲜夜宵，感受本地夜生活。
+                        </div>
+                    </div>
+                </div>
+                
+                 <!-- DAY 3 -->
+                <h2 style="margin-top: 30px;">Day 3: 艺术文化体验与返程</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">10:00 - 12:00</div>
+                        <strong><i class="fas fa-palette"></i> 艺术与古董探索</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-shop"></i> 探访「3000古董屋」，在博物馆般的空间里喝咖啡。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">12:30 - 13:30</div>
+                        <strong><i class="fas fa-utensils"></i> 午餐：普宁马栅捞面</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-bowl-food"></i> 品尝海鲜新鲜、面条劲道的特色捞面。
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">下午</div>
+                        <strong><i class="fas fa-plane-departure"></i> 整理行装，愉快返程</strong>
+                        <div class="timeline-details">
+                            <i class="fa-solid fa-suitcase-rolling"></i> 根据航班时间，提前前往珠海金湾机场，结束旅程。
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        // Chart 2.1: Internet vs. Leading USA-Based LLM
-        if (document.getElementById('chart2_1')) {
-            new Chart(document.getElementById('chart2_1').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 24}, (_, i) => `Year ${i+1}`), // Simplified X-axis
-                    datasets: [
-                        {
-                            label: '互联网 (北美以外用户占比)',
-                            data: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 78, 80, 82, 84, 85, 86, 87, 88, 89, 90, 90, 90], // Example data
-                            borderColor: highlightColor,
-                            tension: 0.1,
-                            fill: false,
-                        },
-                        {
-                            label: 'LLM (北美以外用户占比)',
-                            data: [null,null,90,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null], // Example data for year 3
-                            borderColor: '#FF6384', // Different color for LLM
-                            tension: 0.1,
-                            fill: false,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#FF6384'
-                        }
-                    ]
-                },
-                options: chartOptions('互联网 vs. LLM: 北美以外用户占比', '用户占比 (%)')
-            });
-        }
-        
-        // Chart 2.2: Big Six USA Technology Company CapEx
-        if (document.getElementById('chart2_2')) {
-             new Chart(document.getElementById('chart2_2').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'],
-                    datasets: [{
-                        label: '资本支出 ($B)',
-                        data: [40, 45, 50, 65, 80, 90, 100, 120, 140, 130, 212], // Example data, 2024 is $212B
-                        backgroundColor: `rgba(${highlightColorRGB}, 0.7)`,
-                        borderColor: highlightColor,
-                        borderWidth: 1
-                    }]
-                },
-                options: chartOptions('六大美国科技公司资本支出', '资本支出 ($B)')
-            });
-        }
+            <!-- 右侧：信息卡片 -->
+            <div class="info-column">
+                <div class="info-card">
+                    <h3><i class="fas fa-wallet"></i> 预算摘要 (每人)</h3>
+                    <p><strong>总计预估：</strong> 约 ¥2,466</p>
+                    <ul>
+                        <li><strong>往返机票：</strong> ~ ¥1200</li>
+                        <li><strong>住宿 (2晚)：</strong> ~ ¥500</li>
+                        <li><strong>餐饮交通：</strong> ~ ¥766</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-bed"></i> 住宿建议</h3>
+                    <p><strong>区域：</strong> 扬名广场或吉大附近</p>
+                    <p><strong>类型：</strong> 连锁酒店 (如家/汉庭/全季)</p>
+                    <p><strong>优点：</strong> 市中心，交通便利（公交发达），餐饮购物集中，性价比高。</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-bus-alt"></i> 交通信息</h3>
+                    <p><strong>机场交通：</strong> 机场大巴 (约¥30) 或出租车 (约¥120) 至市区。</p>
+                    <p><strong>市内交通：</strong> 珠海无地铁，主要依赖公交车和网约车。建议提前规划公交路线。</p>
+                    <p><strong>路线示例：</strong> 扬名广场 → 景山公园，驾车约18分钟 (约4公里)，打车费用约¥15-20。</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fas fa-lightbulb"></i> 实用提示</h3>
+                    <ul>
+                        <li>下载“高德地图”或“百度地图”规划公交路线。</li>
+                        <li>提前充值交通卡或准备好移动支付。</li>
+                        <li>海滨城市天气多变，建议携带雨具和防晒用品。</li>
+                        <li>部分热门餐厅饭点可能排队，可错峰前往。</li>
+                        <li>注意保管好个人财物，尤其是在人多景点。</li>
+                    </ul>
+                </div>
+                 <div class="info-card">
+                    <h3><i class="fas fa-phone-alt"></i> 紧急联系</h3>
+                     <p><strong>旅游咨询：</strong> 0756-12345</p>
+                     <p><strong>紧急求助：</strong> 110 (警察), 120 (急救)</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Chart 3: Cost of Key Technologies
-        if (document.getElementById('chart3')) {
-             new Chart(document.getElementById('chart3').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 16}, (_, i) => `Y${i*5}`), // 0 to 72 years in 5 year steps
-                    datasets: [
-                        {
-                            label: '电力',
-                            data: [100, 90, 80, 70, 60, 50, 45, 40, 38, 35, 33, 32, 31, 30, 29, 28].map(v => v*0.8), // Scaled example
-                            borderColor: highlightColor,
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: '计算机内存',
-                            data: [100, 60, 30, 15, 8, 4, 2, 1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2, 0.15, 0.1].map(v => v*0.5), // Scaled example
-                            borderColor: '#4BC0C0',
-                            fill: false,
-                            tension: 0.1
-                        },
-                         {
-                            label: 'AI 推理',
-                            data: [100, 80, 50, 20, 10, 5, 3, 2, 1.5, 1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2], // Example
-                            borderColor: '#FFCE56',
-                            fill: false,
-                            tension: 0.1,
-                            borderDash: [5, 5]
-                        }
-                    ]
-                },
-                options: chartOptions('关键技术成本（相对发布年）', '% 初始价格')
-            });
-        }
-        
-        // Chart 4: Leading USA-Based AI LLM Revenue vs. Compute Expense
-        if (document.getElementById('chart4')) {
-             new Chart(document.getElementById('chart4').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['2022', '2023', '2024'],
-                    datasets: [
-                        {
-                            label: '收入 ($B)',
-                            data: [0.1, 1.5, 3.7], // Example data based on image
-                            borderColor: highlightColor,
-                            tension: 0.1,
-                            fill: false,
-                        },
-                        {
-                            label: '计算费用 ($B)',
-                            data: [null, -2, -5], // Example data, null for 2022
-                            borderColor: '#FF6384',
-                            borderDash: [5,5],
-                            tension: 0.1,
-                            fill: false,
-                        }
-                    ]
-                },
-                options: chartOptions('领先美国AI LLM收入 vs. 计算费用', '金额 ($B)')
-            });
-        }
-
-        // Chart 5: Leading USA LLMs vs. China LLM Desktop User Share
-        if (document.getElementById('chart5')) {
-            new Chart(document.getElementById('chart5').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['USA LLM #1', 'China', 'USA LLM #2'],
-                    datasets: [
-                        {
-                            label: '2/24',
-                            data: [75, 0, 21],
-                            backgroundColor: `rgba(${highlightColorRGB}, 0.5)`,
-                        },
-                        {
-                            label: '4/25 (est.)',
-                            data: [60, 10, 15],
-                            backgroundColor: `rgba(${highlightColorRGB}, 0.8)`,
-                        }
-                    ]
-                },
-                options: chartOptions('中美LLM桌面用户份额', '用户份额 (%)', 'LLM 提供商')
-            });
-        }
-        
-        // Chart 5.1: China vs. USA vs. Rest of World Industrial Robots Installed
-        if (document.getElementById('chart5_1')) {
-            new Chart(document.getElementById('chart5_1').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023'],
-                    datasets: [
-                        {
-                            label: '中国',
-                            data: [50, 70, 90, 130, 150, 140, 170, 270, 300, 320], // Example data
-                            borderColor: '#FF6384', // Red for China
-                            fill: false,
-                        },
-                        {
-                            label: '美国',
-                            data: [25, 28, 30, 33, 35, 33, 30, 35, 38, 40], // Example data
-                            borderColor: highlightColor, // Blue for USA
-                            fill: false,
-                        },
-                        {
-                            label: '世界其他地区 (不含中美)',
-                            data: [150, 160, 170, 180, 190, 200, 180, 210, 220, 230], // Example data
-                            borderColor: '#4BC0C0', // Green for RoW
-                            fill: false,
-                        }
-                    ]
-                },
-                options: chartOptions('工业机器人安装量', '安装量 (千台)')
-            });
-        }
-        
-        // Chart 6: Ride Share vs. Autonomous Taxi
-        if (document.getElementById('chart6')) {
-             new Chart(document.getElementById('chart6').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['8/23', '10/23', '12/23', '2/24', '4/25 (est.)'],
-                    datasets: [
-                        {
-                            label: '共享出行',
-                            data: [34, 30, 28, 25, 19], // Example data
-                            borderColor: highlightColor,
-                            fill: false,
-                        },
-                        {
-                            label: '自动驾驶出租车',
-                            data: [0, 5, 10, 18, 27], // Example data
-                            borderColor: '#FF9F40', // Orange for Autonomous
-                            fill: false,
-                        }
-                    ]
-                },
-                options: chartOptions('旧金山市场份额：共享出行 vs. 自动驾驶出租车', '总订单额占比 (%)')
-            });
-        }
-
-        // Chart 7: Leading USA-Based LLM App Users by Region
-        if (document.getElementById('chart7')) {
-            const chart7Ctx = document.getElementById('chart7').getContext('2d');
-            new Chart(chart7Ctx, {
-                type: 'bar', // Changed to bar for easier stacked representation of regions over time points
-                data: {
-                    labels: ['5/23', '10/23', '4/25 (est.)'], // Simplified time points for clarity
-                    datasets: [
-                        { label: '东亚及太平洋', data: [50, 100, 250], backgroundColor: `rgba(${highlightColorRGB}, 0.9)`},
-                        { label: '欧洲及中亚', data: [30, 60, 150], backgroundColor: `rgba(${highlightColorRGB}, 0.7)` },
-                        { label: '拉美及加勒比', data: [20, 40, 100], backgroundColor: `rgba(${highlightColorRGB}, 0.6)` },
-                        { label: '中东及北非', data: [15, 30, 70], backgroundColor: `rgba(${highlightColorRGB}, 0.5)` },
-                        { label: '北美', data: [40, 80, 180], backgroundColor: `rgba(${highlightColorRGB}, 0.4)` },
-                        { label: '南亚', data: [10, 25, 60], backgroundColor: `rgba(${highlightColorRGB}, 0.3)` },
-                        { label: '撒哈拉以南非洲', data: [5, 15, 40], backgroundColor: `rgba(${highlightColorRGB}, 0.2)` },
-                    ]
-                },
-                options: {
-                    ...chartOptions('领先美国LLM应用按地区用户分布', '月活跃用户 (百万)'),
-                    scales: { x: { stacked: true }, y: { stacked: true } }
-                }
-            });
-        }
-        
-        // Chart 8: USA IT Jobs – AI vs. Non-AI
-        if (document.getElementById('chart8')) {
-             new Chart(document.getElementById('chart8').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['1/18', '1/19', '1/20', '1/21', '1/22', '1/23', '1/24', '4/25 (est.)'],
-                    datasets: [
-                        {
-                            label: 'AI IT职位',
-                            data: [100, 120, 110, 200, 450, 300, 350, 548], // Example data, 100 is baseline, so (100+448)
-                            borderColor: highlightColor, // Blue for AI
-                            fill: false,
-                        },
-                        {
-                            label: '非AI IT职位',
-                            data: [100, 95, 80, 85, 100, 90, 85, 91], // Example data, 100 is baseline, so (100-9)
-                            borderColor: '#4CAF50', // Green for Non-AI
-                            fill: false,
-                        }
-                    ]
-                },
-                options: chartOptions('美国IT职位变化 (指数化, 1/18=100)', '指数')
-            });
-        }
-        
-        // Chart: Global GDP - Last 1,000+ Years
-        if (document.getElementById('chartGlobalGDP')) {
-            new Chart(document.getElementById('chartGlobalGDP').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: ['1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '1950', '2000', '2020'],
-                    datasets: [{
-                        label: '全球实际GDP (万亿 2011 GK$)',
-                        data: [0.5, 0.55, 0.6, 0.65, 0.7, 0.8, 0.9, 1.2, 2, 5, 10, 40, 85], // Example data points on log scale
-                        borderColor: highlightColor,
-                        backgroundColor: `rgba(${highlightColorRGB}, 0.2)`,
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    ...chartOptions('全球GDP – 过去1000多年', '万亿 2011 GK$ (对数刻度)'),
-                    scales: { y: { type: 'logarithmic', ticks: { color: 'rgba(255,255,255,0.7)'} } }
-                }
-            });
-        }
-
-        // Chart: Computing Cycles Over Time
-        if (document.getElementById('chartComputingCycles')) {
-             new Chart(document.getElementById('chartComputingCycles').getContext('2d'), {
-                type: 'bar', // Using bar to represent scales of units
-                data: {
-                    labels: ['大型机 (Mainframe)', '小型计算机 (Minicomputer)', '个人电脑 (PC)', '桌面互联网 (Desktop Internet)', '移动互联网 (Mobile Internet)', 'AI时代 (AI Era)'],
-                    datasets: [{
-                        label: '设备/用户规模 (对数)',
-                        data: [1, 10, 300, 1000, 4000, 20000], // Example data points (MM units, then B for users, then tens of B for AI)
-                        backgroundColor: [
-                            `rgba(${highlightColorRGB}, 0.2)`,
-                            `rgba(${highlightColorRGB}, 0.3)`,
-                            `rgba(${highlightColorRGB}, 0.4)`,
-                            `rgba(${highlightColorRGB}, 0.5)`,
-                            `rgba(${highlightColorRGB}, 0.6)`,
-                            `rgba(${highlightColorRGB}, 0.8)`,
-                        ],
-                        borderColor: highlightColor,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...chartOptions('计算周期演进', '单位数量 (对数刻度)'),
-                    scales: { y: { type: 'logarithmic', ticks: { color: 'rgba(255,255,255,0.7)'} } }
-                }
-            });
-        }
-
-
-    </script>
 </body>
 </html>
